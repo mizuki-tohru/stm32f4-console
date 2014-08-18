@@ -331,7 +331,7 @@ void tokenizer_string(char *dest, int len)
 		}
 	}
 	dest[j] = 0;
-//	cputs_p(6,dest);
+	cputs_p(6,dest);
 }
 /*---------------------------------------------------------------------------*/
 void tokenizer_error_print(void)

@@ -57,6 +57,8 @@ static const struct keyword_token keywords2[] = {
   {"LIST", TOKENIZER_LIST},
   {"load", TOKENIZER_LOAD},
   {"LOAD", TOKENIZER_LOAD},
+  {"save", TOKENIZER_SAVE},
+  {"SAVE", TOKENIZER_SAVE},
   {"files", TOKENIZER_FILES},
   {"FILES", TOKENIZER_FILES},
   {"input", TOKENIZER_INPUT},

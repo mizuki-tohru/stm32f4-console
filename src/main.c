@@ -466,8 +466,8 @@ int main(void)
 	glcd_Init();
 	glcd_BufClear(1);
 	glcd_posClear();
-	conio_init(UART_DEFAULT_NUM,UART_BAUDLATE);
-//	conio_init(6,115200);/*Bluetooth*/
+//	conio_init(UART_DEFAULT_NUM,UART_BAUDLATE);
+	conio_init(6,115200);/*Bluetooth*/
 
 	input_p = 0;
 	input_k = 0;

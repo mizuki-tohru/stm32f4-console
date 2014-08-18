@@ -58,6 +58,7 @@ void refresh_statement(void);
 void rem_statement(void);
 void list_statement(void);
 void load_statement(void);
+void save_statement(void);
 void files_statement(void);
 void peek_statement(void);
 void poke_statement(void);

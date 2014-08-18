@@ -1829,6 +1829,20 @@ void test_ubasic_run2(void)
 	}
 }
 
+void test_save_statement(void)
+{
+	int token;
+	strcpy(BASICBUF,"10 save \"hoge2.bmp\"\n20 end\n");
+	char * prog = BASICBUF;
+	ended = 0;
+	
+	glcd_BufClear(1);
+	ubasic_init(prog);
+	while(ended == 0){
+		ubasic_run();
+	}
+}
+
 void test_ubasic_finished(void)
 {
 	int ret;
@@ -2005,10 +2019,10 @@ int main() {
 	CU_add_test(test_suite, "inp_statement", test_inp_statement);
 	CU_add_test(test_suite, "ubasic_run", test_ubasic_run);
 	CU_add_test(test_suite, "ubasic_run2", test_ubasic_run2);
+	CU_add_test(test_suite, "save_statement", test_save_statement);
 #if 0
 	CU_add_test(test_suite, "end_statement", test_end_statement);
 	CU_add_test(test_suite, "cls_statement", test_cls_statement);
-	CU_add_test(test_suite, "load_statement", test_load_statement);
 	CU_add_test(test_suite, "files_statement", test_files_statement);
 	CU_add_test(test_suite, "wait_statement", test_wait_statement);
 	CU_add_test(test_suite, "inr_statement", test_inr_statement);

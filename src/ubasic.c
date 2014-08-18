@@ -62,11 +62,11 @@ struct for_state {
   int to;
 };
 
-unsigned char bmpheader[] = {'B','M',0x18,0x2F,0x00,0x00,0x00,0x00,0x00,0x00,
+unsigned char bmpheader[] = {'B','M',0xFE,0x30,0x00,0x00,0x00,0x00,0x00,0x00,
 	0x3E,0x00,0x00,0x00,0x28,0x00,0x00,0x00,0x90,0x01,0x00,0x00,0xF0,0x00,0x00,0x00,
-	0x01,0x00,0x01,0x00,0x00,0x00,0x00,0x00,0xC0,0x0E,0x00,0x00,0xC0,0x0E,0x00,0x00,
-	0x02,0x00,0x00,0x00,0x02,0x00,0x00,0x00,0xFF,0xFF,0xFF,0xFF,0x00,0x00,0x00,0x00};
-
+	0x01,0x00,0x01,0x00,0x00,0x00,0x00,0x00,0xC0,0x30,0x00,0x00,0xC0,0x0E,0x00,0x00,
+	0xC0,0x0E,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0xFF,0xFF,0xFF,0x00};
 #define MAX_FOR_STACK_DEPTH 4
 static struct for_state for_stack[MAX_FOR_STACK_DEPTH];
 static int for_stack_ptr;
@@ -122,15 +122,22 @@ void ubasic_init(char *program)
 //static void accept(int token)
 void accept(int token)
 {
+#if TEST
+	char buf[10];
+#endif
 	if(token != tokenizer_token()) {
-//		buf[0] = (token/10) + '0';
-//		buf[1] = (token%10) + '0';
-//		buf[2] = ' ';
-//		buf[3] = (current_token/10) + '0';
-//		buf[4] = (current_token%10) + '0';
-//		buf[5] = '\n';
-//		buf[6] = 0x00;
+#if TEST
+		buf[0] = (token/10) + '0';
+		buf[1] = (token%10) + '0';
+		buf[2] = ' ';
+		buf[3] = (current_token/10) + '0';
+		buf[4] = (current_token%10) + '0';
+		buf[5] = '\n';
+		buf[6] = 0x00;
+//		printf(buf);
 //		cputs_p(6,buf);
+		glcd_PutsA(buf);
+#endif
 		tokenizer_error_print();
 		ended = 1;
 		glcd_DrawCursor();
@@ -622,73 +629,85 @@ void load_statement(void)
 void save_statement(void)
 {
 	BYTE res;
-	long p2;
-	FILINFO Finfo;
+//	long p2;
+//	FILINFO Finfo;
 	char filename[20];
 	unsigned char tmp[2];
-	UINT BytesRead;
+//	UINT BytesRead;
 	UINT BytesWrite;
 	int i;
 	tmp[0] = 0x00;
-	tmp[1] = 0x01;
+	tmp[1] = 0x00;
 
-	accept(TOKENIZER_LOAD);
+	accept(TOKENIZER_SAVE);
 	tokenizer_string(filename, 20);
 	accept(TOKENIZER_STRING);
 	accept(TOKENIZER_CR);
-	res = f_getfree("", (DWORD*)&p2, &Bfs);// testcode
+//	res = f_getfree("", (DWORD*)&p2, &Bfs);// testcode
+#if TEST
+	res = 0;
+#else
 	res = f_opendir(& Bdir, "");
+#endif
 	if (res) {
 		glcd_PutsD("Error: NO SD Card!!\n");
 	} else {
-		for(;;) {
-			res = f_readdir(& Bdir, &Finfo);
-			if ((res != FR_OK) || !Finfo.fname[0]){
-				glcd_PutsD("Error: File not Found\n");
-				break;
+		if(strlen(filename)!=0){
+			if ((isEx(filename,"BAS"))||(isEx(filename,"bas"))){
+#if TEST
+		printf(filename);
+		printf(" = BASIC filename\n");
+#else
+				if(f_open(&BfileR,filename,FA_CREATE_ALWAYS | FA_WRITE) == FR_OK){
+					f_write(&BfileR,BASICBUF,strlen(BASICBUF),&BytesWrite);
+					f_close(&BfileR);
+				}else{
+					glcd_PutsD("Error: Can not Write file!!\n");
+				}
+#endif
 			}
-			if(strlen(filename)!=0){
-				if (isEx(filename,"BAS")){
-					if(f_open(&BfileR,filename,FA_CREATE_ALWAYS | FA_WRITE) == FR_OK){
-						f_write(&BfileR,BASICBUF,strlen(BASICBUF),&BytesWrite);
-						f_close(&BfileR);
-					}else{
-						glcd_PutsD("Error: Can not Write file!!\n");
-					}
-					break;
+			if ((isEx(filename,"TXT"))||(isEx(filename,"txt"))){
+#if TEST
+		printf(filename);
+		printf(" = TXT filename\n");
+#else
+				if(f_open(&BfileR,filename,FA_CREATE_ALWAYS | FA_WRITE) == FR_OK){
+					f_write(&BfileR,strings[3],strlen(strings[3]),&BytesWrite);
+					f_close(&BfileR);
+				}else{
+					glcd_PutsD("Error: Can not Write file!!\n");
 				}
-				if (isEx(filename,"TXT")){
-					if(f_open(&BfileR,filename,FA_CREATE_ALWAYS | FA_WRITE) == FR_OK){
-						f_write(&BfileR,strings[3],strlen(strings[3]),&BytesWrite);
-						f_close(&BfileR);
-					}else{
-						glcd_PutsD("Error: Can not Write file!!\n");
-					}
-					break;
+#endif
+			}
+			if ((isEx(filename,"DAT"))||(isEx(filename,"dat"))){
+#if TEST
+		printf(filename);
+		printf(" = DAT filename\n");
+#else
+				if(f_open(&BfileR,filename,FA_CREATE_ALWAYS | FA_WRITE) == FR_OK){
+					f_write(&BfileR,arrays[3],4096,&BytesWrite);
+					f_close(&BfileR);
+				}else{
+					glcd_PutsD("Error: Can not Write file!!\n");
 				}
-				if (isEx(filename,"DAT")){
-					if(f_open(&BfileR,filename,FA_CREATE_ALWAYS | FA_WRITE) == FR_OK){
-						f_write(&BfileR,arrays[3],4096,&BytesWrite);
-						f_close(&BfileR);
-					}else{
-						glcd_PutsD("Error: Can not Write file!!\n");
+#endif
+			}
+			if ((isEx(filename,"BMP"))||(isEx(filename,"bmp"))){
+#if TEST
+		printf(filename);
+		printf(" = BMP filename\n");
+#else
+				if(f_open(&BfileR,filename,FA_CREATE_ALWAYS | FA_WRITE) == FR_OK){
+					f_write(&BfileR, bmpheader, 62, &BytesWrite);
+					for(i=0;i<240;i++){
+						f_write(&BfileR, glcd_buf+(50*(240-i)), 50, &BytesWrite);
+						f_write(&BfileR, tmp, 2, &BytesWrite);
 					}
-					break;
+					f_close(&BfileR);
+				}else{
+					glcd_PutsD("Error: Can not Write file!!\n");
 				}
-				if (isEx(filename,"BMP")){
-					if(f_open(&BfileR,filename,FA_CREATE_ALWAYS | FA_WRITE) == FR_OK){
-						f_write(&BfileR, bmpheader, 62, &BytesWrite);
-						for(i=0;i<240;i++){
-							f_write(&BfileR, glcd_buf+(50*(240-i)), 50, &BytesWrite);
-							f_write(&BfileR, tmp, 2, &BytesWrite);
-						}
-						f_write(&BfileR,arrays[3],4096,&BytesWrite);
-						f_close(&BfileR);
-					}else{
-						glcd_PutsD("Error: Can not Write file!!\n");
-					}
-					break;
-				}
+#endif
 			}
 		}
 	}
@@ -699,7 +718,7 @@ void save_statement(void)
 void files_statement(void)
 {
 	int res;
-	long p2;
+//	long p2;
 	accept(TOKENIZER_FILES);
 	accept(TOKENIZER_CR);
 
@@ -731,7 +750,7 @@ void peek_statement(void)
 	}
 #if TEST
 #else
-	ubasic_set_variable(var, *((uint32_t *)addr));
+//	ubasic_set_variable(var, *((uint32_t *)addr));
 #endif
 	accept(TOKENIZER_CR);
 }
@@ -756,7 +775,7 @@ void poke_statement(void)
 	}
 #if TEST
 #else
-	*((uint32_t *)(addr)) = (uint32_t)data;
+//	*((uint32_t *)(addr)) = (uint32_t)data;
 #endif
 	accept(TOKENIZER_CR);
 }
